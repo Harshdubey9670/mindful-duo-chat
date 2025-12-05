@@ -8,12 +8,7 @@ export interface Message {
   timestamp: Date;
 }
 
-export interface ConversationHistory {
-  empathetic: Message[];
-  rational: Message[];
-}
-
-const EMPATHETIC_SYSTEM_PROMPT = `You are a warm, empathetic mental wellness companion named "Sage." Your approach is:
+const EMPATHETIC_SYSTEM_PROMPT = `You are a warm, empathetic mental wellness companion named "Sage" from MINDMATE AI. Your approach is:
 - Deeply compassionate and emotionally attuned
 - You validate feelings before offering any suggestions
 - You use warm, nurturing language
@@ -28,7 +23,7 @@ const EMPATHETIC_SYSTEM_PROMPT = `You are a warm, empathetic mental wellness com
 
 Remember: You're having a conversation, not giving a lecture. Be present with the person.`;
 
-const RATIONAL_SYSTEM_PROMPT = `You are a supportive cognitive behavioral coach named "Atlas." Your approach is:
+const RATIONAL_SYSTEM_PROMPT = `You are a supportive cognitive behavioral coach named "Atlas" from MINDMATE AI. Your approach is:
 - Grounded in CBT (Cognitive Behavioral Therapy) principles
 - You help identify thought patterns and cognitive distortions
 - You offer practical, actionable strategies
@@ -108,17 +103,11 @@ async function callGemini(
   return data.candidates[0].content.parts[0].text;
 }
 
-export async function getAgentResponses(
+export async function getAgentResponse(
   userMessage: string,
-  conversationHistory: ConversationHistory
-): Promise<{ empathetic: string; rational: string }> {
-  const [empatheticResponse, rationalResponse] = await Promise.all([
-    callGemini(EMPATHETIC_SYSTEM_PROMPT, userMessage, conversationHistory.empathetic),
-    callGemini(RATIONAL_SYSTEM_PROMPT, userMessage, conversationHistory.rational),
-  ]);
-
-  return {
-    empathetic: empatheticResponse,
-    rational: rationalResponse,
-  };
+  agentType: "empathetic" | "rational",
+  conversationHistory: Message[]
+): Promise<string> {
+  const systemPrompt = agentType === "empathetic" ? EMPATHETIC_SYSTEM_PROMPT : RATIONAL_SYSTEM_PROMPT;
+  return callGemini(systemPrompt, userMessage, conversationHistory);
 }

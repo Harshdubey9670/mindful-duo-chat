@@ -27,7 +27,7 @@ export function AgentPanel({ type, messages, isTyping }: AgentPanelProps) {
   return (
     <div
       className={cn(
-        "flex flex-col h-full rounded-2xl overflow-hidden",
+        "flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-500",
         isEmpathetic ? "glass-empathetic glow-empathetic" : "glass-rational glow-rational"
       )}
     >
@@ -55,10 +55,10 @@ export function AgentPanel({ type, messages, isTyping }: AgentPanelProps) {
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <AgentAvatar type={type} size="lg" />
-            <p className="mt-4 text-sm text-muted-foreground max-w-[200px]">
+            <p className="mt-4 text-sm text-muted-foreground max-w-[280px]">
               {isEmpathetic
-                ? "I'm here to listen and support you with warmth and understanding."
-                : "I'm here to help you find clarity through practical strategies."}
+                ? "Hi, I'm Sage. I'm here to listen and support you with warmth and understanding. What's on your mind?"
+                : "Hi, I'm Atlas. I'm here to help you find clarity through practical strategies. How can I assist you today?"}
             </p>
           </div>
         ) : (
@@ -74,7 +74,7 @@ export function AgentPanel({ type, messages, isTyping }: AgentPanelProps) {
         )}
         
         {isTyping && (
-          <div className="flex gap-3 items-start">
+          <div className="flex gap-3 items-start mt-2">
             <AgentAvatar type={type} size="sm" isTyping />
             <div className={cn(
               "rounded-2xl rounded-tl-md glass-card px-2",

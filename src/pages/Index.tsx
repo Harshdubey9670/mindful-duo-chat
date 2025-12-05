@@ -1,21 +1,19 @@
 import { useState, useCallback, useRef } from "react";
 import { Header } from "@/components/Header";
 import { AgentPanel } from "@/components/AgentPanel";
+import { AgentSelector } from "@/components/AgentSelector";
 import { ChatInput } from "@/components/ChatInput";
-import { getAgentResponses, type Message, type ConversationHistory } from "@/lib/gemini";
+import { getAgentResponse, type Message } from "@/lib/gemini";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [conversationHistory, setConversationHistory] = useState<ConversationHistory>({
-    empathetic: [],
-    rational: [],
-  });
+  const [selectedAgent, setSelectedAgent] = useState<"empathetic" | "rational">("empathetic");
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const debounceRef = useRef<boolean>(false);
 
   const handleSendMessage = useCallback(async (userMessage: string) => {
-    // Debounce protection
     if (debounceRef.current || isLoading) return;
     debounceRef.current = true;
     setTimeout(() => { debounceRef.current = false; }, 500);
@@ -27,81 +25,67 @@ const Index = () => {
       timestamp,
     };
 
-    // Add user message to both agent histories
-    setConversationHistory((prev) => ({
-      empathetic: [...prev.empathetic, userMsg],
-      rational: [...prev.rational, userMsg],
-    }));
-
+    setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
     try {
-      const responses = await getAgentResponses(userMessage, conversationHistory);
+      const response = await getAgentResponse(userMessage, selectedAgent, messages);
 
-      const empatheticResponse: Message = {
+      const agentResponse: Message = {
         role: "assistant",
-        content: responses.empathetic,
-        agentType: "empathetic",
+        content: response,
+        agentType: selectedAgent,
         timestamp: new Date(),
       };
 
-      const rationalResponse: Message = {
-        role: "assistant",
-        content: responses.rational,
-        agentType: "rational",
-        timestamp: new Date(),
-      };
-
-      setConversationHistory((prev) => ({
-        empathetic: [...prev.empathetic, empatheticResponse],
-        rational: [...prev.rational, rationalResponse],
-      }));
+      setMessages((prev) => [...prev, agentResponse]);
     } catch (error) {
-      console.error("Error getting responses:", error);
+      console.error("Error getting response:", error);
       toast({
         title: "Connection Issue",
-        description: "Unable to connect to the AI. Please try again in a moment.",
+        description: "Unable to connect to MINDMATE AI. Please try again.",
         variant: "destructive",
       });
       
-      // Remove the user message on error
-      setConversationHistory((prev) => ({
-        empathetic: prev.empathetic.slice(0, -1),
-        rational: prev.rational.slice(0, -1),
-      }));
+      setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
-  }, [conversationHistory, isLoading, toast]);
+  }, [messages, selectedAgent, isLoading, toast]);
+
+  const handleAgentChange = (agent: "empathetic" | "rational") => {
+    if (agent !== selectedAgent) {
+      setSelectedAgent(agent);
+      setMessages([]);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-animate">
       {/* Ambient background glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-agent-empathetic/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-agent-rational/5 rounded-full blur-3xl" />
+        <div className={`absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl transition-all duration-700 ${
+          selectedAgent === "empathetic" ? "bg-agent-empathetic/8" : "bg-agent-rational/8"
+        }`} />
+        <div className={`absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl transition-all duration-700 ${
+          selectedAgent === "empathetic" ? "bg-agent-empathetic/5" : "bg-agent-rational/5"
+        }`} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/3 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 flex flex-col flex-1 max-w-7xl mx-auto w-full px-4 pb-4">
+      <div className="relative z-10 flex flex-col flex-1 max-w-3xl mx-auto w-full px-4 pb-4">
         <Header />
+        
+        {/* Agent Selector */}
+        <AgentSelector selectedAgent={selectedAgent} onSelect={handleAgentChange} />
 
-        {/* Agent Panels */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 min-h-0">
-          <div className="min-h-[400px] lg:min-h-0">
-            <AgentPanel
-              type="empathetic"
-              messages={conversationHistory.empathetic}
-              isTyping={isLoading}
-            />
-          </div>
-          <div className="min-h-[400px] lg:min-h-0">
-            <AgentPanel
-              type="rational"
-              messages={conversationHistory.rational}
-              isTyping={isLoading}
-            />
-          </div>
+        {/* Single Agent Panel */}
+        <div className="flex-1 min-h-[400px] my-4">
+          <AgentPanel
+            type={selectedAgent}
+            messages={messages}
+            isTyping={isLoading}
+          />
         </div>
 
         {/* Chat Input */}
