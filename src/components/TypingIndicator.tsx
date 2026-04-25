@@ -11,19 +11,19 @@ export function TypingIndicator({ agentType }: TypingIndicatorProps) {
     <div className="flex items-center gap-1.5 px-4 py-3">
       <div
         className={cn(
-          "typing-dot",
+          "typing-dot shadow-[0_0_24px_currentColor]",
           isEmpathetic ? "text-agent-empathetic" : "text-agent-rational"
         )}
       />
       <div
         className={cn(
-          "typing-dot",
+          "typing-dot shadow-[0_0_24px_currentColor]",
           isEmpathetic ? "text-agent-empathetic" : "text-agent-rational"
         )}
       />
       <div
         className={cn(
-          "typing-dot",
+          "typing-dot shadow-[0_0_24px_currentColor]",
           isEmpathetic ? "text-agent-empathetic" : "text-agent-rational"
         )}
       />

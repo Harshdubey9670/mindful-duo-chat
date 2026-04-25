@@ -8,9 +8,9 @@ interface AgentAvatarProps {
 
 export function AgentAvatar({ type, size = "md", isTyping = false }: AgentAvatarProps) {
   const sizeClasses = {
-    sm: "w-8 h-8 text-sm",
-    md: "w-12 h-12 text-lg",
-    lg: "w-16 h-16 text-2xl",
+    sm: "h-9 w-9 text-xs",
+    md: "h-12 w-12 text-sm",
+    lg: "h-16 w-16 text-base",
   };
 
   const isEmpathetic = type === "empathetic";
@@ -18,11 +18,11 @@ export function AgentAvatar({ type, size = "md", isTyping = false }: AgentAvatar
   return (
     <div
       className={cn(
-        "relative rounded-full flex items-center justify-center font-display font-semibold transition-all duration-300",
+        "relative flex items-center justify-center overflow-hidden rounded-full border font-display font-semibold uppercase tracking-[0.24em] transition-all duration-300",
         sizeClasses[size],
         isEmpathetic
-          ? "bg-gradient-to-br from-agent-empathetic/30 to-agent-empathetic/10 text-agent-empathetic"
-          : "bg-gradient-to-br from-agent-rational/30 to-agent-rational/10 text-agent-rational",
+          ? "border-agent-empathetic/25 bg-[radial-gradient(circle_at_top,hsl(15_80%_75%_/_0.36),transparent_45%),linear-gradient(135deg,hsl(15_80%_65%_/_0.24),hsl(228_20%_14%_/_0.94))] text-white"
+          : "border-agent-rational/25 bg-[radial-gradient(circle_at_top,hsl(190_90%_75%_/_0.34),transparent_45%),linear-gradient(135deg,hsl(190_80%_55%_/_0.24),hsl(228_20%_14%_/_0.94))] text-white",
         isTyping && "avatar-pulse"
       )}
       style={{
@@ -31,19 +31,17 @@ export function AgentAvatar({ type, size = "md", isTyping = false }: AgentAvatar
           : `0 0 15px ${isEmpathetic ? "hsl(15 80% 65% / 0.2)" : "hsl(190 80% 55% / 0.2)"}`,
       }}
     >
-      {/* Inner glow ring */}
       <div
         className={cn(
-          "absolute inset-0.5 rounded-full opacity-50",
+          "absolute inset-[3px] rounded-full border opacity-60",
           isEmpathetic
-            ? "bg-gradient-to-br from-agent-empathetic/20 to-transparent"
-            : "bg-gradient-to-br from-agent-rational/20 to-transparent"
+            ? "border-agent-empathetic/20"
+            : "border-agent-rational/20"
         )}
       />
-      
-      {/* Avatar icon */}
+
       <span className="relative z-10">
-        {isEmpathetic ? "🌸" : "💎"}
+        {isEmpathetic ? "SG" : "AT"}
       </span>
     </div>
   );

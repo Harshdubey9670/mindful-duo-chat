@@ -3,7 +3,7 @@ import { Header } from "@/components/Header";
 import { AgentPanel } from "@/components/AgentPanel";
 import { AgentSelector } from "@/components/AgentSelector";
 import { ChatInput } from "@/components/ChatInput";
-import { getAgentResponse, type Message } from "@/lib/gemini";
+import { getAgentResponse, type Message } from "@/lib/openrouter";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -43,7 +43,7 @@ const Index = () => {
       console.error("Error getting response:", error);
       toast({
         title: "Connection Issue",
-        description: "Unable to connect to MINDMATE AI. Please try again.",
+        description: "Unable to connect to MindMate. Please try again.",
         variant: "destructive",
       });
       
@@ -61,37 +61,83 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-animate">
-      {/* Ambient background glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className={`absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl transition-all duration-700 ${
-          selectedAgent === "empathetic" ? "bg-agent-empathetic/8" : "bg-agent-rational/8"
+    <div className="relative min-h-screen overflow-hidden bg-animate">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(196_100%_72%_/_0.16),transparent_30%),radial-gradient(circle_at_bottom_right,hsl(192_68%_58%_/_0.12),transparent_25%),linear-gradient(180deg,hsl(224_41%_8%),hsl(228_45%_5%))]" />
+        <div className="absolute left-[10%] top-16 h-72 w-72 rounded-full border border-white/10 bg-white/5 blur-3xl animate-drift-slow" />
+        <div className={`absolute right-[8%] top-[18%] h-96 w-96 rounded-full blur-3xl transition-all duration-700 animate-breathe ${
+          selectedAgent === "empathetic" ? "bg-agent-empathetic/12" : "bg-agent-rational/12"
         }`} />
-        <div className={`absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl transition-all duration-700 ${
-          selectedAgent === "empathetic" ? "bg-agent-empathetic/5" : "bg-agent-rational/5"
-        }`} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/3 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-10%] left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl animate-drift-reverse" />
+        <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(hsl(0_0%_100%_/_0.05)_1px,transparent_1px),linear-gradient(90deg,hsl(0_0%_100%_/_0.05)_1px,transparent_1px)] [background-size:100px_100px]" />
       </div>
 
-      <div className="relative z-10 flex flex-col flex-1 max-w-3xl mx-auto w-full px-4 pb-4">
-        <Header />
-        
-        {/* Agent Selector */}
-        <AgentSelector selectedAgent={selectedAgent} onSelect={handleAgentChange} />
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-6 pt-4 md:px-6 lg:px-8">
+        <Header
+          selectedAgent={selectedAgent}
+          isLoading={isLoading}
+          hasMessages={messages.length > 0}
+        />
 
-        {/* Single Agent Panel */}
-        <div className="flex-1 min-h-[400px] my-4">
-          <AgentPanel
-            type={selectedAgent}
-            messages={messages}
-            isTyping={isLoading}
-          />
-        </div>
+        <section className="grid flex-1 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+          <div className="glass-panel surface-noise aurora-shell order-2 rounded-[28px] border border-white/12 p-4 shadow-panel lg:order-1">
+            <AgentSelector selectedAgent={selectedAgent} onSelect={handleAgentChange} />
 
-        {/* Chat Input */}
-        <div className="max-w-2xl mx-auto w-full">
-          <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
-        </div>
+            <div className="mt-4 rounded-[24px] border border-white/10 bg-white/5 p-4">
+              <p className="text-[11px] uppercase tracking-[0.28em] text-white/45">Current mode</p>
+              <h2 className="mt-3 font-display text-2xl text-white">
+                {selectedAgent === "empathetic" ? "Sage helps you slow down." : "Atlas helps you think clearly."}
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-white/65">
+                {selectedAgent === "empathetic"
+                  ? "A softer conversational mode for emotional check-ins, validation, and calmer reflection."
+                  : "A sharper coaching mode for structure, reframing, and practical next steps."}
+              </p>
+              <p className="mt-3 text-sm text-white/44">
+                {isLoading
+                  ? "You can feel the interface shift when a response is forming."
+                  : messages.length > 0
+                    ? "The atmosphere adapts as the conversation deepens."
+                    : "Everything is intentionally quiet until you begin."}
+              </p>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              <div className="rounded-[22px] border border-white/10 bg-white/5 p-4">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-white/40">Response tone</p>
+                <p className="mt-2 text-sm text-white/75">
+                  {selectedAgent === "empathetic" ? "Reflective and warm" : "Focused and analytical"}
+                </p>
+              </div>
+              <div className="rounded-[22px] border border-white/10 bg-white/5 p-4">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-white/40">Best for</p>
+                <p className="mt-2 text-sm text-white/75">
+                  {selectedAgent === "empathetic" ? "Emotional support" : "Clarity and reframing"}
+                </p>
+              </div>
+              <div className="rounded-[22px] border border-white/10 bg-white/5 p-4">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-white/40">Input hint</p>
+                <p className="mt-2 text-sm text-white/75">Press Enter to send, Shift + Enter for a new line.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="order-1 flex min-h-[540px] flex-col gap-4 lg:order-2">
+            <AgentPanel
+              type={selectedAgent}
+              messages={messages}
+              isTyping={isLoading}
+            />
+
+            <div className="mx-auto w-full max-w-4xl">
+              <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+            </div>
+          </div>
+        </section>
+
+        <footer className="px-2 pb-2 pt-5 text-center text-sm text-white/42">
+          Made by Harsh Dubey
+        </footer>
       </div>
     </div>
   );
